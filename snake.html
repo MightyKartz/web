@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>贪食蛇游戏</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        canvas {
+            background: #111;
+            border: 2px solid #333;
+            max-width: 100%;
+            max-height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // 设置画布大小
+        const gridSize = 20;
+        const tileCount = 20;
+        canvas.width = tileCount * gridSize;
+        canvas.height = tileCount * gridSize;
+
+        // 游戏变量
+        let snake = [{x: 10, y: 10}];
+        let food = {x: 15, y: 15};
+        let direction = {x: 0, y: 0};
+        let gameSpeed = 100;
+        let score = 0;
+        let gameOver = false;
+
+        // 绘制游戏元素
+        function drawGame() {
+            // 清空画布
+            ctx.fillStyle = '#111';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // 绘制蛇
+            ctx.fillStyle = 'lime';
+            snake.forEach(segment => {
+                ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
+            });
+
+            // 绘制食物
+            ctx.fillStyle = 'red';
+            ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize, gridSize);
+
+            // 绘制分数
+            ctx.fillStyle = 'white';
+            ctx.font = '20px Arial';
+            ctx.fillText('分数: ' + score, 10, 30);
+        }
+
+        // 更新游戏状态
+        function updateGame() {
+            if (gameOver) return;
+
+            // 计算新蛇头位置
+            const head = {x: snake[0].x + direction.x, y: snake[0].y + direction.y};
+
+            // 碰撞检测
+            if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount ||
+                snake.some(segment => segment.x === head.x && segment.y === head.y)) {
+                gameOver = true;
+                alert('游戏结束！你的分数是：' + score);
+                return;
+            }
+
+            // 添加新蛇头
+            snake.unshift(head);
+
+            // 检查是否吃到食物
+            if (head.x === food.x && head.y === food.y) {
+                score++;
+                placeFood();
+            } else {
+                // 移除蛇尾
+                snake.pop();
+            }
+        }
+
+        // 放置新食物
+        function placeFood() {
+            food = {
+                x: Math.floor(Math.random() * tileCount),
+                y: Math.floor(Math.random() * tileCount)
+            };
+            
+            // 确保食物不在蛇身上
+            while (snake.some(segment => segment.x === food.x && segment.y === food.y)) {
+                food = {
+                    x: Math.floor(Math.random() * tileCount),
+                    y: Math.floor(Math.random() * tileCount)
+                };
+            }
+        }
+
+        // 处理键盘输入
+        window.addEventListener('keydown', e => {
+            switch(e.key) {
+                case 'ArrowUp':
+                    if (direction.y === 0) direction = {x: 0, y: -1};
+                    break;
+                case 'ArrowDown':
+                    if (direction.y === 0) direction = {x: 0, y: 1};
+                    break;
+                case 'ArrowLeft':
+                    if (direction.x === 0) direction = {x: -1, y: 0};
+                    break;
+                case 'ArrowRight':
+                    if (direction.x === 0) direction = {x: 1, y: 0};
+                    break;
+            }
+        });
+
+        // 游戏循环
+        function gameLoop() {
+            updateGame();
+            drawGame();
+            if (!gameOver) {
+                setTimeout(gameLoop, gameSpeed);
+            }
+        }
+
+        // 开始游戏
+        placeFood();
+        gameLoop();
+    </script>
+</body>
+</html>
